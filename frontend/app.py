@@ -5,9 +5,9 @@ import io
 import os
 import base64
 
-st.set_page_config(page_title="Detector de Cajas", page_icon="📦", layout="centered")
-st.title("📦 Detector de Cajas Vacías y Llenas con IA")
-st.markdown("Sube una imagen para que el modelo detecte las cajas vacías y llenas.")
+st.set_page_config(page_title="Box Detector", page_icon="📦", layout="centered")
+st.title("📦 Empty and Full Box Detector with AI")
+st.markdown("Upload an image to let the model detect empty and full boxes.")
 
 imagen_subida = st.file_uploader("📤 Sube una imagen", type=["jpg", "jpeg", "png"])
 
