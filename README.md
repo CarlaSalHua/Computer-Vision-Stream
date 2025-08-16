@@ -35,8 +35,6 @@ Las partes 1 y 2 viven en _este_ repositorio; la parte 3 se mantiene como **subm
 ---
 ## 2. Clonado del proyecto <a name="clonado-del-proyecto"></a>
 
-El frontend es un **submódulo**, así que usamos `--recursive`:
-
 ```bash
 # Clona la rama V2-refactor del backend
 git clone -b V2-refactor https://github.com/aalvan/retail-object-detection.git
@@ -145,19 +143,7 @@ Pasos efectuados en el refactor:
 Ventaja: cada equipo puede evolucionar su parte de forma independiente conservando un único punto de orquestación.
 
 ---
-## 8. Actualizar el frontend <a name="actualizar-frontend"></a>
-
-Cuando el repo `BoundingBoxesDetector` reciba nuevos commits en `V2-refactor`:
-```bash
-# Dentro del backend
-git submodule update --remote frontend
-git add frontend
-git commit -m "Update frontend submodule"
-git push
-```
-
----
-## 9. Créditos <a name="creditos"></a>
+## 8. Créditos <a name="creditos"></a>
 
 Proyecto académico – Anyone AI (Final Project "Object Detection for in-store inventory management").
 
