@@ -9,7 +9,7 @@ from fastapi.concurrency import run_in_threadpool
 from app import settings as config
 from app import utils
 from app.auth.jwt import get_current_user
-from app.model.services import model_predict
+from app.model.services import model_predict, model_predict_image
 from app.model.schema import PredictResponse
 
 router = APIRouter(tags=["Model"], prefix="/model")
@@ -62,7 +62,7 @@ async def predict(file: UploadFile = File(...), current_user=Depends(get_current
         raise HTTPException(status_code=500, detail=f"Error saving file: {e}")
 
     try:
-        num_objects, image_base64 = await run_in_threadpool(model_predict, file_path)
+        num_objects, image_base64 = await run_in_threadpool(model_predict_image, file_path)
         return {
             "success": True,
             "num_objects": num_objects,

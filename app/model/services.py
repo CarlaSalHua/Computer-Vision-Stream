@@ -8,6 +8,21 @@ import os
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "best.pt")
 model = YOLO(MODEL_PATH)
 
+def model_predict_image(image_path: str):
+    results = model.predict(source=image_path, save=False)
+    if not results or not results[0].boxes:
+        return 0, ""
+
+    num_objects = len(results[0].boxes)
+    rendered = results[0].plot(labels=False)
+    img = Image.fromarray(rendered[..., ::-1])
+
+    buffer = io.BytesIO()
+    img.save(buffer, format="PNG")
+    img_base64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
+
+    return num_objects, img_base64
+
 # Modificamos la función para que acepte un objeto de imagen (PIL.Image)
 def model_predict(image: Image.Image):
     """
