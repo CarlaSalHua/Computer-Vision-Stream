@@ -9,37 +9,37 @@ import cv2
 import numpy as np
 from streamlit_webrtc import webrtc_streamer, WebRtcMode, RTCConfiguration
 
-# 1. CONFIGURACIÓN ÚNICA DE LA PÁGINA (debe ser el primer comando st)
+# 1. UNIQUE PAGE CONFIGURATION (must be the first st command)
 st.set_page_config(page_title="Box Detector AI", page_icon="📦", layout="wide")
 
-# 2. TÍTULO PRINCIPAL DE LA APLICACIÓN
-st.title("📦 Detector de Cajas Llenas y Vacías con IA")
+# 2. MAIN APPLICATION TITLE
+st.title("📦 Full and Empty Box Detector with AI")
 
-# 3. URL BASE DEL BACKEND (más fácil de mantener)
+# 3. BACKEND BASE URL (easier to maintain)
 BASE_URL = os.getenv("BACKEND_URL_BASE", "http://localhost:8000")
 ENDPOINT_PREDICT = f"{BASE_URL}/model/predict"
 ENDPOINT_STREAM = f"{BASE_URL}/model/predict_stream"
 
 
-# 4. CREACIÓN DE PESTAÑAS PARA CADA FUNCIONALIDAD
-tab1, tab2 = st.tabs(["Procesar Imagen Estática", "Detección en Tiempo Real"])
+# 4. CREATE TABS FOR EACH FEATURE
+tab1, tab2 = st.tabs(["Process Static Image", "Real-Time Detection"])
 
 
-# --- PESTAÑA 1: LÓGICA PARA SUBIR IMÁGENES ---
+# --- TAB 1: LOGIC FOR UPLOADING IMAGES ---
 with tab1:
-    st.header("Sube una imagen para analizar")
-    imagen_subida = st.file_uploader("📤 Elige una imagen", type=["jpg", "jpeg", "png"], key="uploader")
+    st.header("Upload an image to analyze")
+    imagen_subida = st.file_uploader("📤  Choose an image", type=["jpg", "jpeg", "png"], key="uploader")
 
     col1, col2 = st.columns(2)
 
     with col1:
         if imagen_subida:
-            st.image(imagen_subida, caption="📷 Imagen Original", use_container_width=True)
+            st.image(imagen_subida, caption="📷 Original Image", use_container_width=True)
 
-    if st.button("🚀 Procesar imagen", key="process_button"):
+    if st.button("🚀 Process image", key="process_button"):
         if imagen_subida is not None:
             try:
-                with st.spinner("Procesando imagen... ⏳"):
+                with st.spinner("Processing image... ⏳"):
                     files = {"file": (imagen_subida.name, imagen_subida.getvalue(), imagen_subida.type)}
                     response = requests.post(ENDPOINT_PREDICT, files=files)
                     
@@ -48,77 +48,77 @@ with tab1:
                             data = response.json()
                             img_bytes = base64.b64decode(data["image_base64"])
                             imagen_procesada = Image.open(io.BytesIO(img_bytes))
-                            st.success(f"✅ Objetos detectados: {data['num_objects']}")
-                            st.image(imagen_procesada, caption="📦 Imagen Procesada", use_container_width=True)
+                            st.success(f"✅ Objects detected: {data['num_objects']}")
+                            st.image(imagen_procesada, caption="📦 Processed Image", use_container_width=True)
                         else:
-                            st.error(f"❌ Error del servidor: {response.status_code} - {response.text}")
+                            st.error(f"❌ Server error: {response.status_code} - {response.text}")
             except requests.exceptions.RequestException as e:
-                st.error(f"⚠️ Error de conexión con el backend: {e}")
+                st.error(f"⚠️ Connection error with backend: {e}")
         else:
-            st.warning("Por favor, sube una imagen antes de procesar.")
+            st.warning("Please upload an image before processing.")
 
 
-# --- PESTAÑA 2: LÓGICA PARA DETECCIÓN EN TIEMPO REAL ---
+# --- TAB 2: LOGIC FOR REAL-TIME DETECTION ---
 with tab2:
-    st.header("Activa tu cámara para detectar en tiempo real")
-    st.info("ℹ️ Permite el acceso a la cámara y presiona 'START'. Puedes usar la opción de 'Compartir Pantalla' de tu navegador si lo prefieres.")
+    st.header("Activate your camera for real-time detection")
+    st.info("ℹ️ Allow camera access and press 'START'. You can also use your browser’s 'Share Screen' option if you prefer.")
 
     def video_frame_callback(frame: av.VideoFrame) -> av.VideoFrame:
-    # """ Esta función se ejecuta por cada fotograma del stream de video. """
-    # Convertir el fotograma de video a una imagen que podamos usar
+        # """ This function runs for each video frame in the stream. """
+        # Convert the video frame to an image we can use
         img = frame.to_ndarray(format="bgr24")
-        # 1. Codificar la imagen para enviarla al backend
+        # 1. Encode the image to send it to the backend
         _, buffer = cv2.imencode('.jpg', img)
         img_base64 = base64.b64encode(buffer).decode('utf-8')
 
-        # 2. Enviar la imagen al backend
+        # 2. Send the image to the backend
         try:
             response = requests.post(ENDPOINT_STREAM, json={"image_base64": img_base64})
-            response.raise_for_status() # Lanza un error si la respuesta no es 2xx
+            response.raise_for_status() # Raises error if response is not 2xx
             data = response.json()
 
-            # 3. Decodificar la imagen procesada recibida del backend
+            # 3. Decode the processed image received from the backend
             img_processed_bytes = base64.b64decode(data["image_base64"])
             img_processed = cv2.imdecode(np.frombuffer(img_processed_bytes, np.uint8), cv2.IMREAD_COLOR)
 
-            # 4. Mostrar el número de objetos detectados sobre la imagen
+            # 4. Display the number of detected objects on the image
             num_objects = data["num_objects"]
-            text = f"Items detectados: {num_objects}"
-            # Parámetros para el texto
+            text = f"Items detected: {num_objects}"
+            # Text parameters
             font = cv2.FONT_HERSHEY_SIMPLEX
             font_scale = 1
-            color = (0, 255, 0) # Verde
+            color = (0, 255, 0) # Green
             thickness = 2
             text_size, _ = cv2.getTextSize(text, font, font_scale, thickness)
             text_x = 10
             text_y = text_size[1] + 10
 
-            # Dibujar el texto en la imagen procesada
+            # Draw the text on the processed image
             cv2.putText(img_processed, text, (text_x, text_y), font, font_scale, color, thickness)
             
-            # Devolver el fotograma procesado para mostrarlo en el frontend
+            # Return the processed frame to be displayed in the frontend
             return av.VideoFrame.from_ndarray(img_processed, format="bgr24")
 
         except requests.exceptions.RequestException as e:
-            # Si hay un error de conexión, no hacemos nada y devolvemos el frame original
+            # If there’s a connection error, do nothing and return the original frame
             st.warning(f"No se pudo conectar al backend: {e}")
-            return frame # Devuelve el frame original sin procesar
+            return frame # Return the original unprocessed frame
 
-    # --- Componente de Streamlit ---
+    # --- Streamlit Component ---
     from streamlit_webrtc import webrtc_streamer, WebRtcMode, RTCConfiguration
 
-    # Configuración para servidores STUN (necesario para la conexión P2P)
+    # STUN server configuration (needed for P2P connection)
     RTC_CONFIGURATION = RTCConfiguration(
         {"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]}
     )
 
     webrtc_streamer(
         key="box-detector",
-        mode=WebRtcMode.SENDRECV, # Enviar nuestro video y recibir el video procesado
+        mode=WebRtcMode.SENDRECV,  # Send our video and receive the processed video
         rtc_configuration=RTC_CONFIGURATION,
         video_frame_callback=video_frame_callback,
-        media_stream_constraints={"video": True, "audio": False}, # Pedir acceso a video, no audio
-        async_processing=True, # Procesamiento asíncrono para mejor rendimiento
+        media_stream_constraints={"video": True, "audio": False}, # Request video, not audio
+        async_processing=True, # Asynchronous processing for better performance
     )
 
-    st.info("ℹ️ Puedes elegir tu cámara web o la opción 'Compartir Pantalla' en la ventana emergente de tu navegador.")
+    st.info("ℹ️ You can select your webcam or the 'Share Screen' option in your browser’s popup window.")
