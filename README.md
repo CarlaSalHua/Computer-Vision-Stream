@@ -30,7 +30,9 @@ This repository contains an object detection system for images of supermarket sh
 * GPU + CUDA 11.8 (opcional pero recomendado para inferencia/entrenamiento)
 
 ---
+
 ## 2. Project cloning <a name="project-cloning"></a>
+
 
 ```bash
 # Clone the main branch of the backend
@@ -137,6 +139,7 @@ Steps carried out in the refactor:
 Advantage: each team can evolve their part independently while keeping a single orchestration point.
 
 ---
+
 ## 8. Credits <a name="credits"></a>
 
 Academic project – Anyone AI (Final Project "Object Detection for in-store inventory management").
@@ -145,3 +148,4 @@ Academic project – Anyone AI (Final Project "Object Detection for in-store inv
 * Streamlit frontend: **Carla Salazar (CarlaSalHua)**
 * SKU-110K dataset: <https://github.com/eg4000/SKU110K_CVPR19>
 * Ultralytics YOLOv8 framework: <https://github.com/ultralytics/ultralytics>
+
