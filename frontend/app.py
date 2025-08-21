@@ -46,9 +46,10 @@ with tab1:
                     with col2:
                         if response.status_code == 200:
                             data = response.json()
+                            # st.json(data)
                             img_bytes = base64.b64decode(data["image_base64"])
                             imagen_procesada = Image.open(io.BytesIO(img_bytes))
-                            st.success(f"✅ Objects detected: {data['num_objects']}")
+                            st.success(f"✅ Objects detected: {data['num_objects']} - Empty boxes: {data['bounding_objects']}")
                             st.image(imagen_procesada, caption="📦 Processed Image", use_container_width=True)
                         else:
                             st.error(f"❌ Server error: {response.status_code} - {response.text}")
@@ -111,14 +112,36 @@ with tab2:
     RTC_CONFIGURATION = RTCConfiguration(
         {"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]}
     )
+    
+    col1, col_video, col3 = st.columns([1, 3, 1])
 
-    webrtc_streamer(
-        key="box-detector",
-        mode=WebRtcMode.SENDRECV,  # Send our video and receive the processed video
-        rtc_configuration=RTC_CONFIGURATION,
-        video_frame_callback=video_frame_callback,
-        media_stream_constraints={"video": True, "audio": False}, # Request video, not audio
-        async_processing=True, # Asynchronous processing for better performance
-    )
+
+    with col_video:
+
+        st.markdown("""
+            <style>
+            div[data-testid="stVideo"] {
+                height: 40vh;
+            }
+            div[data-testid="stVideo"] video {
+                object-fit: contain;
+                height: 80%;
+                width: 100%;
+            }
+            </style>
+            """, unsafe_allow_html=True)
+        
+        st.markdown('<div class="video-container-custom">', unsafe_allow_html=True)
+
+        webrtc_streamer(
+            key="box-detector",
+            mode=WebRtcMode.SENDRECV,  # Send our video and receive the processed video
+            rtc_configuration=RTC_CONFIGURATION,
+            video_frame_callback=video_frame_callback,
+            media_stream_constraints={"video": True, "audio": False}, # Request video, not audio
+            async_processing=True, # Asynchronous processing for better performance
+        )
+
+        st.markdown('</div>', unsafe_allow_html=True)
 
     st.info("ℹ️ You can select your webcam or the 'Share Screen' option in your browser’s popup window.")

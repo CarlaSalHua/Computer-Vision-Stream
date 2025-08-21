@@ -14,14 +14,17 @@ def model_predict_image(image_path: str):
         return 0, ""
 
     num_objects = len(results[0].boxes)
+    # print(f"objects: {len(results[0].boxes[results[0].boxes.cls == 1])}")
+    bounding_objects = len(results[0].boxes[results[0].boxes.cls == 1])
     rendered = results[0].plot(labels=False)
     img = Image.fromarray(rendered[..., ::-1])
+    img.thumbnail((9999, 400))
 
     buffer = io.BytesIO()
     img.save(buffer, format="PNG")
     img_base64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
 
-    return num_objects, img_base64
+    return num_objects, img_base64, bounding_objects
 
 # Modificamos la función para que acepte un objeto de imagen (PIL.Image)
 def model_predict(image: Image.Image):
